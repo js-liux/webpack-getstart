@@ -1,37 +1,48 @@
-var path = require('path');
+var path = require("path");
+var webpack = require('webpack');
 var node_modules = path.resolve(__dirname, 'node_modules');
-var pathToReact = path.resolve(node_modules, 'react/dist/react.min.js');
+var pathToReact = path.resolve(node_modules, 'react/dist/react.js');
+var pathToReactDom = path.resolve(node_modules, 'react-dom/dist/react-dom.js');
 
-var config = {
+module.exports = {
   context: __dirname + "/app",
-  //entry: ['webpack/hot/dev-server', path.resolve(__dirname, 'app/react/main.js')],
+  resolve: {
+    alias: {
+      'react': pathToReact,
+      'react-dom': pathToReactDom,
+      'marked':  path.resolve(node_modules, 'marked/marked.min.js')
+    }
+  },
   entry: {
-    main: "./react/main.js",
-    b: './js/b'
+    pageA: "./pageA",
+    statefulComponent: "./statefulComponent.jsx",
+    TodoApp: "./TodoApp.jsx",
+    Mark: ['webpack/hot/dev-server',"./mark.js"]
   },
   output: {
-    path: __dirname + "/build",
-    filename: "[name].entry.js"
+    path: path.join(__dirname, "build/app/"),
+    filename: "[name].bundle.js",
+    chunkFilename: "[id].chunk.js"
   },
   module: {
     loaders: [{
       test: /\.jsx?$/,
       exclude: /(node_modules|bower_components)/,
-      loader: 'babel', // 'babel-loader' is also a legal name to reference
-      query:
-      {
-        presets: ['react','es2015'],
-        cacheDirectory: true
-      }
+      include: [
+        path.resolve(__dirname, "app/"),
+      ],
+      noParse: [pathToReact],
+      query: {
+        presets: ['react', 'es2015']
+      },
+      loader: "babel"
     }],
-    noParse: [pathToReact]
   },
-  resolve: {
-    extensions: ['', '.js', '.jsx'],
-    alias: {
-      'react': pathToReact
-    }
-  }
-};
 
-module.exports = config;
+  plugins: [
+    new webpack.optimize.CommonsChunkPlugin("commons.js")
+  ],
+  resolveLoader: {
+    extensions: ['.jsx', '.js', ]
+  },
+}
